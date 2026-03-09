@@ -305,7 +305,8 @@ export function ChatPage({
   quickReplies: QuickReply[]; dark: boolean;
   initialLeadId?: number | null;
   onSendMessage?: (text: string, contact: string) => void;
-}) {
+  })
+  {
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(initialLeadId || null);
   const [chatSearch, setChatSearch] = useState("");
   const [chatFilterStatus, setChatFilterStatus] = useState("");
@@ -565,6 +566,7 @@ export function ChatPage({
     </div>
   );
 }
+  }
 
 
 // ═══════════════════════════════════════════
