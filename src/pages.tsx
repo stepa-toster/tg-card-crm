@@ -297,13 +297,14 @@ function LeadFormModal({ open, onClose, lead, accounts, offers, cabinets, onSave
 // CHAT PAGE
 // ═══════════════════════════════════════════
 export function ChatPage({
-  leads, setLeads, accounts, messages, setMessages, quickReplies, dark, initialLeadId,
+  leads, setLeads, accounts, messages, setMessages, quickReplies, dark, initialLeadId, onSendMessage,
 }: {
   leads: Lead[]; setLeads: (l: Lead[]) => void;
   accounts: TgAccount[];
   messages: ChatMessage[]; setMessages: (m: ChatMessage[]) => void;
   quickReplies: QuickReply[]; dark: boolean;
   initialLeadId?: number | null;
+  onSendMessage?: (text: string, contact: string) => void;
 }) {
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(initialLeadId || null);
   const [chatSearch, setChatSearch] = useState("");
@@ -340,20 +341,20 @@ export function ChatPage({
     return msgs.length > 0 ? msgs[msgs.length - 1] : null;
   };
 
-  const sendMessage = () => {
+   const sendMessage = () => {
     if (!msgText.trim() || !selectedLead) return;
-    const newMsg: ChatMessage = {
-      id: Math.max(0, ...messages.map(m => m.id)) + 1,
-      lead_id: selectedLead.id,
-      tg_account_id: selectedLead.tg_account_id,
-      direction: "outgoing",
-      text: msgText.trim(),
-      sent_at: new Date().toISOString(),
-    };
-    setMessages([...messages, newMsg]);
-    setMsgText("");
-    setShowQuickReplies(false);
-  };
+
+    // 👇 НОВАЯ ЛОГИКА ОТПРАВКИ 👇
+    if (onSendMessage) {
+       const contact = selectedLead.tg_username 
+          ? selectedLead.tg_username.replace('@', '') 
+          : selectedLead.phone;
+          
+       onSendMessage(msgText.trim(), contact);
+       setMsgText("");
+       setShowQuickReplies(false);
+       return;
+    }
 
   const handleInputChange = (val: string) => {
     setMsgText(val);

@@ -9,6 +9,7 @@ import {
 } from "./data";
 import { Toast } from "./components";
 import { LeadsPage, ChatPage, BalancePage, TasksPage, SettingsPage } from "./pages";
+const API_URL = "https://tg-card-crm.onrender.com/api/sendMessage";
 
 // ═══ THEME HOOK ═══
 function useTheme() {
@@ -234,6 +235,41 @@ function MainApp({ currentUser, onLogout }: { currentUser: CRMUser; onLogout: ()
   const paidToday = visibleLeads.filter(l => l.paid_date >= today).length;
   const deliveryTomorrow = visibleLeads.filter(l => l.delivery_date === tomorrowStr).length;
   const activeTasks = tasks.filter(t => !t.is_done).length;
+  const handleSendMessage = async (text: string, leadPhoneOrId: string) => {
+    try {
+      // 1. Отправляем на Vercel
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          chatId: leadPhoneOrId // Сюда нужно передавать username или телефон
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // 2. Добавляем сообщение в локальный стейт, чтобы оно появилось в чате
+        const newMessage: ChatMessage = {
+           id: Date.now(),
+           lead_id: chatLeadId || 0, // Привязываем к текущему лиду
+           sender: "me", // Или "admin"
+           text: text,
+           date: new Date().toISOString(),
+           is_read: true
+        };
+        setMessages(prev => [...prev, newMessage]);
+        setToast("✅ Сообщение отправлено!");
+      } else {
+        setToast(`❌ Ошибка: ${data.error}`);
+      }
+
+    } catch (error) {
+      console.error(error);
+      setToast("❌ Ошибка сети");
+    }
+  };
 
   const navItems: { key: Page; icon: string; label: string; badge?: number }[] = [
     { key: "leads", icon: "👥", label: "Лиды" },
@@ -361,6 +397,8 @@ function MainApp({ currentUser, onLogout }: { currentUser: CRMUser; onLogout: ()
               quickReplies={quickReplies}
               dark={dark}
               initialLeadId={chatLeadId}
+              // 👇 ДОБАВИТЬ ЭТУ СТРОКУ 👇
+              onSendMessage={handleSendMessage} 
             />
           )}
           {page === "balance" && (
