@@ -1,0 +1,105 @@
+import { TelegramClient } from "telegram";
+import { StringSession } from "telegram/sessions";
+
+// Получаем переменные из Vercel
+const apiId = parseInt(process.env.TG_API_ID);
+const apiHash = process.env.TG_API_HASH;
+const stringSession = new StringSession(process.env.TG_SESSION);
+
+export default async function handler(req, res) {
+  // Настройка CORS (чтобы фронтенд мог слать запросы)
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { message, chatId } = req.body;
+
+  try {
+    console.log("Connecting to Telegram...");
+    const client = new TelegramClient(stringSession, apiId, apiHash, {
+      connectionRetries: 5,
+    });
+
+    // Подключаемся (используя сохраненную сессию)
+    await client.connect();
+
+    // Отправляем сообщение
+    await client.sendMessage(chatId, { message: message });
+
+    // Отключаемся (важно для Serverless!)
+    await client.disconnect(); 
+    // Примечание: на Vercel лучше не закрывать соединение жестко, 
+    // но GramJS может висеть. disconnect() безопаснее.
+
+    return res.status(200).json({ success: true });
+
+  } catch (error) {
+    console.error("Telegram Error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+}import { TelegramClient } from "telegram";
+import { StringSession } from "telegram/sessions";
+
+// Получаем переменные из Vercel
+const apiId = parseInt(process.env.TG_API_ID);
+const apiHash = process.env.TG_API_HASH;
+const stringSession = new StringSession(process.env.TG_SESSION);
+
+export default async function handler(req, res) {
+  // Настройка CORS (чтобы фронтенд мог слать запросы)
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { message, chatId } = req.body;
+
+  try {
+    console.log("Connecting to Telegram...");
+    const client = new TelegramClient(stringSession, apiId, apiHash, {
+      connectionRetries: 5,
+    });
+
+    // Подключаемся (используя сохраненную сессию)
+    await client.connect();
+
+    // Отправляем сообщение
+    await client.sendMessage(chatId, { message: message });
+
+    // Отключаемся (важно для Serverless!)
+    await client.disconnect(); 
+    // Примечание: на Vercel лучше не закрывать соединение жестко, 
+    // но GramJS может висеть. disconnect() безопаснее.
+
+    return res.status(200).json({ success: true });
+
+  } catch (error) {
+    console.error("Telegram Error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+}

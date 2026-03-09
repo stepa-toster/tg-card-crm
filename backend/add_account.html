@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Подключить Telegram аккаунт — TG Card CRM</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 40px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo-icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .logo h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .logo p {
+      color: #64748b;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    /* URL настройка */
+    .url-section {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .url-section label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .url-row {
+      display: flex;
+      gap: 8px;
+    }
+    .url-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #374151;
+      background: white;
+    }
+    .url-input:focus {
+      outline: none;
+      border-color: #6366f1;
+    }
+    .url-btn {
+      padding: 8px 16px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .url-btn:hover { background: #4f46e5; }
+    /* Status индикатор */
+    .status-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #94a3b8;
+    }
+    .dot.green { background: #22c55e; }
+    .dot.red { background: #ef4444; }
+    .dot.yellow { background: #f59e0b; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    /* Шаги */
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .step {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.3s;
+    }
+    .step.active { background: #6366f1; color: white; }
+    .step.done { background: #22c55e; color: white; }
+    .step.inactive { background: #f1f5f9; color: #94a3b8; }
+    .step-line {
+      width: 40px;
+      height: 2px;
+      background: #e2e8f0;
+      margin-top: 15px;
+      transition: all 0.3s;
+    }
+    .step-line.done { background: #22c55e; }
+    /* Форма */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 16px;
+      color: #1e293b;
+      transition: border-color 0.2s;
+      background: #fafafa;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #6366f1;
+      background: white;
+    }
+    .form-group .hint {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+    /* Кнопки */
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(99,102,241,0.4); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-success {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+    }
+    .btn-success:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(34,197,94,0.4); }
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #475569;
+      margin-top: 10px;
+    }
+    .btn-secondary:hover { background: #e2e8f0; }
+    /* Алерты */
+    .alert {
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .alert-info { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; }
+    .alert-success { background: #f0fdf4; color: #15803d; border: 1.5px solid #bbf7d0; }
+    .alert-error { background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; }
+    .alert-warning { background: #fffbeb; color: #92400e; border: 1.5px solid #fde68a; }
+    .alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    /* Секции */
+    .section { display: none; }
+    .section.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+    .section-desc {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 24px;
+    }
+    /* Успех */
+    .success-icon {
+      text-align: center;
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    .success-name {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+    .success-phone {
+      text-align: center;
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 24px;
+    }
+    /* Список аккаунтов */
+    .accounts-list { margin-top: 24px; }
+    .accounts-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .account-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: #f8fafc;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      border: 1.5px solid #e2e8f0;
+    }
+    .account-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .account-info { flex: 1; }
+    .account-name { font-weight: 600; font-size: 14px; color: #1e293b; }
+    .account-phone { font-size: 12px; color: #64748b; }
+    .account-status {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 99px;
+      background: #dcfce7;
+      color: #15803d;
+      font-weight: 600;
+    }
+    /* Инфо блок */
+    .info-box {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+    .info-box-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .info-box ol, .info-box ul {
+      padding-left: 18px;
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.8;
+    }
+    .info-box a { color: #6366f1; font-weight: 600; }
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .code-input-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+    .code-digit {
+      width: 52px;
+      height: 60px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      color: #1e293b;
+      background: #fafafa;
+      transition: all 0.2s;
+    }
+    .code-digit:focus {
+      outline: none;
+      border-color: #6366f1;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <span class="logo-icon">💳</span>
+      <h1>TG Card CRM</h1>
+      <p>Подключение Telegram аккаунта</p>
+    </div>
+    <!-- URL настройка -->
+    <div class="url-section">
+      <label>🌐 URL бэкенда (Railway)</label>
+      <div class="url-row">
+        <input type="url" class="url-input" id="backendUrl"
+          placeholder="https://xxx.up.railway.app"
+          value="">
+        <button class="url-btn" onclick="checkBackend()">Проверить</button>
+      </div>
+      <div class="status-dot">
+        <div class="dot" id="statusDot"></div>
+        <span id="statusText" style="color:#94a3b8">Введите URL и нажмите "Проверить"</span>
+      </div>
+    </div>
+    <!-- Шаги -->
+    <div class="steps">
+      <div class="step active" id="step1">1</div>
+      <div class="step-line" id="line1"></div>
+      <div class="step inactive" id="step2">2</div>
+      <div class="step-line" id="line2"></div>
+      <div class="step inactive" id="step3">✓</div>
+    </div>
+    <!-- Ошибка -->
+    <div class="alert alert-error" id="errorAlert" style="display:none">
+      <span class="alert-icon">❌</span>
+      <span id="errorText"></span>
+    </div>
+    <!-- Шаг 1: Телефон -->
+    <div class="section active" id="sectionPhone">
+      <div class="section-title">📱 Введите номер телефона</div>
+      <div class="section-desc">Номер телефона, привязанный к вашему Telegram аккаунту</div>
+      <div class="form-group">
+        <label>Номер телефона</label>
+        <input type="tel" id="phoneInput"
+          placeholder="+79001234567"
+          value="">
+        <div class="hint">Международный формат с + и кодом страны</div>
+      </div>
+      <button class="btn btn-primary" onclick="sendCode()" id="sendBtn">
+        📨 Отправить код в Telegram
+      </button>
+      <div class="info-box">
+        <div class="info-box-title">ℹ️ Как это работает</div>
+        <ol>
+          <li>Вводишь номер телефона</li>
+          <li>Telegram пришлёт код подтверждения</li>
+          <li>Вводишь код — аккаунт подключён</li>
+          <li>Сообщения идут прямо с твоего аккаунта</li>
+        </ol>
+      </div>
+    </div>
+    <!-- Шаг 2: Код -->
+    <div class="section" id="sectionCode">
+      <div class="section-title">🔐 Введите код из Telegram</div>
+      <div class="section-desc" id="codeSentTo">Код отправлен на ваш Telegram</div>
+      <div class="form-group">
+        <label>Код подтверждения</label>
+        <div class="code-input-row">
+          <input class="code-digit" type="text" maxlength="1" id="d1" oninput="nextDigit(this,'d2')" onkeydown="prevDigit(event,this,'')">
+          <input class="code-digit" type="text" maxlength="1" id="d2" oninput="nextDigit(this,'d3')" onkeydown="prevDigit(event,this,'d1')">
+          <input class="code-digit" type="text" maxlength="1" id="d3" oninput="nextDigit(this,'d4')" onkeydown="prevDigit(event,this,'d2')">
+          <input class="code-digit" type="text" maxlength="1" id="d4" oninput="nextDigit(this,'d5')" onkeydown="prevDigit(event,this,'d3')">
+          <input class="code-digit" type="text" maxlength="1" id="d5" oninput="nextDigit(this,'')"   onkeydown="prevDigit(event,this,'d4')">
+        </div>
+        <div class="hint" style="text-align:center;margin-top:10px">Код состоит из 5 цифр</div>
+      </div>
+      <div class="form-group" id="passwordGroup" style="display:none">
+        <label>🔑 Пароль двухфакторной авторизации (2FA)</label>
+        <input type="password" id="passwordInput" placeholder="Введите пароль 2FA">
+        <div class="hint">Если у вас включена двухфакторная аутентификация в Telegram</div>
+      </div>
+      <button class="btn btn-success" onclick="verifyCode()" id="verifyBtn">
+        ✅ Подтвердить
+      </button>
+      <button class="btn btn-secondary" onclick="goBack()">
+        ← Назад
+      </button>
+    </div>
+    <!-- Шаг 3: Успех -->
+    <div class="section" id="sectionSuccess">
+      <div class="success-icon">🎉</div>
+      <div class="success-name" id="successName"></div>
+      <div class="success-phone" id="successPhone"></div>
+      <div class="alert alert-success">
+        <span class="alert-icon">✅</span>
+        <div>
+          <strong>Аккаунт успешно подключён!</strong><br>
+          Теперь все сообщения будут отправляться прямо с вашего Telegram аккаунта.
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addAnother()">
+        ➕ Добавить ещё аккаунт
+      </button>
+      <div class="accounts-list" id="accountsList"></div>
+    </div>
+  </div>
+  <script>
+    // ─── Конфиг ───────────────────────────────────────────────────────────────
+    // Пытаемся определить URL автоматически
+    let BACKEND = localStorage.getItem('crm-backend-url') || '';
+    // Если открыто с Railway домена — используем его
+    if (!BACKEND && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      BACKEND = window.location.origin;
+    }
+    // Заполняем поле
+    if (BACKEND) {
+      document.getElementById('backendUrl').value = BACKEND;
+    }
+    // ─── Состояние ────────────────────────────────────────────────────────────
+    let phoneCodeHash = '';
+    let currentPhone = '';
+    // ─── Проверка бэкенда ────────────────────────────────────────────────────
+    async function checkBackend() {
+      const url = document.getElementById('backendUrl').value.trim().replace(/\/$/, '');
+      if (!url) { showError('Введите URL бэкенда'); return; }
+      BACKEND = url;
+      localStorage.setItem('crm-backend-url', url);
+      setStatus('yellow', 'Подключаемся...');
+      clearError();
+      try {
+        const res = await fetch(`${BACKEND}/health`, { signal: AbortSignal.timeout(8000) });
+        const data = await res.json();
+        setStatus('green', `✅ Подключено! Аккаунтов: ${typeof data.accounts === 'object' ? Object.keys(data.accounts).length : data.accounts}`);
+        await loadAccounts();
+      } catch (e) {
+        setStatus('red', '❌ Не удалось подключиться. Проверьте URL.');
+        showError(`Ошибка подключения: ${e.message}. Убедитесь что Railway сервис запущен и URL правильный.`);
+      }
+    }
+    function setStatus(color, text) {
+      const dot = document.getElementById('statusDot');
+      const txt = document.getElementById('statusText');
+      dot.className = 'dot ' + color;
+      txt.textContent = text;
+      txt.style.color = color === 'green' ? '#15803d' : color === 'red' ? '#b91c1c' : '#92400e';
+    }
+    // ─── Загрузка аккаунтов ──────────────────────────────────────────────────
+    async function loadAccounts() {
+      if (!BACKEND) return;
+      try {
+        const res = await fetch(`${BACKEND}/api/accounts`);
+        const accounts = await res.json();
+        renderAccounts(accounts);
+      } catch(e) {}
+    }
+    function renderAccounts(accounts) {
+      const el = document.getElementById('accountsList');
+      if (!accounts || accounts.length === 0) return;
+      el.innerHTML = `<div class="accounts-title">📱 Подключённые аккаунты (${accounts.length})</div>` +
+        accounts.filter(a => !a.pending).map(a => `
+          <div class="account-item">
+            <div class="account-avatar">${(a.name || a.phone)[0].toUpperCase()}</div>
+            <div class="account-info">
+              <div class="account-name">${a.name || 'Без имени'}</div>
+              <div class="account-phone">${a.phone}${a.username ? ' · @' + a.username : ''}</div>
+            </div>
+            <span class="account-status">${a.connected ? '🟢 Online' : '⚫ Offline'}</span>
+          </div>
+        `).join('');
+    }
+    // ─── Шаг 1: Отправить код ────────────────────────────────────────────────
+    async function sendCode() {
+      clearError();
+      const phone = document.getElementById('phoneInput').value.trim();
+      if (!phone) { showError('Введите номер телефона'); return; }
+      if (!BACKEND) { showError('Сначала введите URL бэкенда и нажмите "Проверить"'); return; }
+      const btn = document.getElementById('sendBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Отправляем...';
+      try {
+        const res = await fetch(`${BACKEND}/api/accounts/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || 'Ошибка сервера');
+        }
+        currentPhone = data.phone;
+        if (data.status === 'already_authorized') {
+          // Уже авторизован
+          showSuccess(data.name || data.phone, data.phone);
+          return;
+        }
+        // Переходим к шагу 2
+        phoneCodeHash = data.phone_code_hash;
+        document.getElementById('codeSentTo').textContent =
+          `Код отправлен в Telegram на номер ${currentPhone}`;
+        showSection('sectionCode');
+        setStep(2);
+        setTimeout(() => document.getElementById('d1').focus(), 100);
+      } catch(e) {
+        showError(e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '📨 Отправить код в Telegram';
+      }
+    }
+    // ─── Шаг 2: Подтвердить код ──────────────────────────────────────────────
+    async function verifyCode() {
+      clearError();
+      const code = ['d1','d2','d3','d4','d5'].map(id => document.getElementById(id).value).join('');
+      if (code.length !== 5) { showError('Введите все 5 цифр кода'); return; }
+      const btn = document.getElementById('verifyBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Проверяем...';
+      const password = document.getElementById('passwordInput').value;
+      try {
+        const res = await fetch(`${BACKEND}/api/accounts/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: currentPhone,
+            code,
+            phone_code_hash: phoneCodeHash,
+            password: password || undefined
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          if (data.detail === 'Требуется пароль 2FA') {
+            document.getElementById('passwordGroup').style.display = 'block';
+            document.getElementById('passwordInput').focus();
+            showError('Введите пароль двухфакторной авторизации (2FA)');
+          } else {
+            throw new Error(data.detail || 'Ошибка верификации');
+          }
+          return;
+        }
+        showSuccess(data.name || currentPhone, currentPhone);
+      } catch(e) {
+        showError(e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '✅ Подтвердить';
+      }
+    }
+    // ─── Успех ────────────────────────────────────────────────────────────────
+    function showSuccess(name, phone) {
+      document.getElementById('successName').textContent = name;
+      document.getElementById('successPhone').textContent = phone;
+      showSection('sectionSuccess');
+      setStep(3);
+      loadAccounts();
+    }
+    // ─── Навигация ────────────────────────────────────────────────────────────
+    function showSection(id) {
+      ['sectionPhone','sectionCode','sectionSuccess'].forEach(s => {
+        document.getElementById(s).classList.remove('active');
+      });
+      document.getElementById(id).classList.add('active');
+    }
+    function setStep(n) {
+      for (let i = 1; i <= 3; i++) {
+        const el = document.getElementById('step' + i);
+        if (i < n) { el.className = 'step done'; el.textContent = '✓'; }
+        else if (i === n) { el.className = 'step active'; el.textContent = i === 3 ? '✓' : i; }
+        else { el.className = 'step inactive'; el.textContent = i === 3 ? '✓' : i; }
+      }
+      for (let i = 1; i <= 2; i++) {
+        document.getElementById('line' + i).className = 'step-line' + (n > i ? ' done' : '');
+      }
+    }
+    function goBack() {
+      clearError();
+      showSection('sectionPhone');
+      setStep(1);
+    }
+    function addAnother() {
+      clearError();
+      document.getElementById('phoneInput').value = '';
+      ['d1','d2','d3','d4','d5'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('passwordGroup').style.display = 'none';
+      showSection('sectionPhone');
+      setStep(1);
+    }
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+    function showError(msg) {
+      document.getElementById('errorAlert').style.display = 'flex';
+      document.getElementById('errorText').textContent = msg;
+    }
+    function clearError() {
+      document.getElementById('errorAlert').style.display = 'none';
+    }
+    function nextDigit(el, nextId) {
+      if (el.value && nextId) {
+        document.getElementById(nextId).focus();
+      }
+      // Автоматически отправить если все 5 заполнены
+      const code = ['d1','d2','d3','d4','d5'].map(id => document.getElementById(id).value).join('');
+      if (code.length === 5) {
+        setTimeout(() => verifyCode(), 300);
+      }
+    }
+    function prevDigit(e, el, prevId) {
+      if (e.key === 'Backspace' && !el.value && prevId) {
+        document.getElementById(prevId).focus();
+      }
+    }
+    // ─── Автозагрузка ────────────────────────────────────────────────────────
+    window.addEventListener('load', () => {
+      if (BACKEND) {
+        checkBackend();
+      }
+    });
+  </script>
+</body>
+</html>

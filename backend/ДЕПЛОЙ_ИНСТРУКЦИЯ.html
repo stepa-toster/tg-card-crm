@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Инструкция по деплою TG Card CRM Backend</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; }
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+  .h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+  .subtitle { color: #94a3b8; margin-bottom: 40px; font-size: 1.1rem; }
+  .platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 48px; }
+  .platform-card { background: #1e293b; border: 1.5px solid #334155; border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.2s; }
+  .platform-card:hover { border-color: #6366f1; transform: translateY(-2px); }
+  .platform-card.active { border-color: #6366f1; background: #1e1b4b; }
+  .platform-card .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+  .badge-best { background: #14532d; color: #4ade80; }
+  .badge-ok { background: #1e3a8a; color: #93c5fd; }
+  .badge-hard { background: #451a03; color: #fb923c; }
+  .platform-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+  .platform-card p { color: #94a3b8; font-size: 14px; }
+  .guide { display: none; background: #1e293b; border: 1.5px solid #334155; border-radius: 16px; padding: 32px; margin-bottom: 32px; }
+  .guide.active { display: block; }
+  .guide h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 24px; color: #f1f5f9; }
+  .step { display: flex; gap: 16px; margin-bottom: 24px; }
+  .step-num { width: 32px; height: 32px; min-width: 32px; background: #6366f1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: white; }
+  .step-content h4 { font-weight: 600; margin-bottom: 6px; color: #f1f5f9; }
+  .step-content p { color: #94a3b8; font-size: 14px; margin-bottom: 8px; }
+  .step-content a { color: #818cf8; text-decoration: none; }
+  .step-content a:hover { text-decoration: underline; }
+  code { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 2px 8px; font-family: 'Courier New', monospace; font-size: 13px; color: #a5b4fc; }
+  pre { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 16px; margin: 10px 0; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 13px; color: #e2e8f0; line-height: 1.7; }
+  pre .comment { color: #64748b; }
+  pre .keyword { color: #818cf8; }
+  pre .string { color: #4ade80; }
+  .warn { background: #451a03; border: 1px solid #92400e; border-radius: 10px; padding: 14px 16px; margin: 16px 0; color: #fcd34d; font-size: 14px; }
+  .success { background: #14532d; border: 1px solid #166534; border-radius: 10px; padding: 14px 16px; margin: 16px 0; color: #4ade80; font-size: 14px; }
+  .info { background: #1e3a8a; border: 1px solid #1d4ed8; border-radius: 10px; padding: 14px 16px; margin: 16px 0; color: #93c5fd; font-size: 14px; }
+  .copy-btn { background: #6366f1; color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; margin-left: 8px; }
+  .copy-btn:hover { background: #4f46e5; }
+  .section-title { font-size: 1rem; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 0.5px; margin: 24px 0 12px; }
+  hr { border: none; border-top: 1px solid #334155; margin: 24px 0; }
+  .env-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+  .env-table th { background: #0f172a; padding: 8px 12px; text-align: left; color: #64748b; font-weight: 600; }
+  .env-table td { padding: 8px 12px; border-top: 1px solid #334155; }
+  .env-table td:first-child { font-family: monospace; color: #a5b4fc; }
+  .tag { display: inline-block; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 1px 8px; font-size: 12px; color: #94a3b8; margin: 2px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>🚀 Деплой TG Card CRM Backend</h1>
+  <p class="subtitle">Пошаговые инструкции для каждой бесплатной платформы</p>
+
+  <!-- Выбор платформы -->
+  <div class="platform-grid">
+    <div class="platform-card active" onclick="showGuide('railway')">
+      <span class="badge badge-best">⭐ ЛУЧШИЙ</span>
+      <h3>🚂 Railway.app</h3>
+      <p>$5 кредитов/мес бесплатно. Поддержка WebSocket. Постоянные файлы сессий. Автодеплой с GitHub.</p>
+    </div>
+    <div class="platform-card" onclick="showGuide('render')">
+      <span class="badge badge-ok">👍 ХОРОШИЙ</span>
+      <h3>🎨 Render.com</h3>
+      <p>Бесплатный tier. Засыпает через 15 мин — но сессия сохраняется. Простой деплой.</p>
+    </div>
+    <div class="platform-card" onclick="showGuide('oracle')">
+      <span class="badge badge-best">♾️ НАВСЕГДА</span>
+      <h3>☁️ Oracle Cloud</h3>
+      <p>БЕСПЛАТНО НАВСЕГДА. 2 CPU + 1GB RAM. Нужна карта для регистрации (не снимают). Сложнее настроить.</p>
+    </div>
+    <div class="platform-card" onclick="showGuide('flyio')">
+      <span class="badge badge-ok">🆓 БЕСПЛАТНО</span>
+      <h3>🪁 Fly.io</h3>
+      <p>3 бесплатных VM. Поддержка WebSocket. Нужна карта. Хорошая стабильность.</p>
+    </div>
+    <div class="platform-card" onclick="showGuide('local')">
+      <span class="badge badge-ok">💻 ЛОКАЛЬНО</span>
+      <h3>🏠 Localtunnel / ngrok</h3>
+      <p>Запуск на своём компьютере + туннель в интернет. Бесплатно, но компьютер должен быть включён.</p>
+    </div>
+  </div>
+
+  <!-- ═══ RAILWAY ═══ -->
+  <div id="guide-railway" class="guide active">
+    <h2>🚂 Railway.app — Пошаговая инструкция</h2>
+    
+    <div class="success">✅ Рекомендуемый вариант: $5 бесплатных кредитов каждый месяц, WebSocket работает, сессии сохраняются постоянно</div>
+
+    <p class="section-title">Шаг 1 — Подготовка GitHub репозитория</p>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Создай аккаунт на GitHub</h4>
+        <p>Зайди на <a href="https://github.com" target="_blank">github.com</a> → Sign up (бесплатно)</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Создай новый репозиторий</h4>
+        <p>Нажми <code>+</code> → New repository → Имя: <code>tg-crm-backend</code> → Private → Create</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Загрузи файлы бэкенда</h4>
+        <p>Открой папку <code>backend/</code> в проекте. В GitHub нажми "uploading an existing file" и перетащи все файлы из папки backend:</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">
+          <span class="tag">main.py</span>
+          <span class="tag">requirements.txt</span>
+          <span class="tag">railway.json</span>
+          <span class="tag">Procfile</span>
+          <span class="tag">runtime.txt</span>
+        </div>
+        <p>⚠️ НЕ загружай <code>.env</code> и папку <code>sessions/</code>!</p>
+      </div>
+    </div>
+
+    <hr>
+    <p class="section-title">Шаг 2 — Получи API ключи Telegram</p>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Зайди на my.telegram.org</h4>
+        <p>Открой <a href="https://my.telegram.org/apps" target="_blank">my.telegram.org/apps</a></p>
+        <p>Введи номер своего телефона → получи код в Telegram → введи код</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Создай приложение</h4>
+        <p>Нажми <strong>"API development tools"</strong> → заполни форму:</p>
+        <pre>App title: TG Card CRM
+Short name: tgcardcrm
+Platform: Desktop</pre>
+        <p>Нажми "Create application" → скопируй <code>App api_id</code> и <code>App api_hash</code></p>
+      </div>
+    </div>
+
+    <hr>
+    <p class="section-title">Шаг 3 — Деплой на Railway</p>
+
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <h4>Зарегистрируйся на Railway</h4>
+        <p>Зайди на <a href="https://railway.app" target="_blank">railway.app</a> → Login with GitHub</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">7</div>
+      <div class="step-content">
+        <h4>Создай новый проект</h4>
+        <p>Нажми <strong>"New Project"</strong> → <strong>"Deploy from GitHub repo"</strong> → выбери <code>tg-crm-backend</code></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">8</div>
+      <div class="step-content">
+        <h4>Добавь переменные окружения</h4>
+        <p>В проекте: <strong>Variables</strong> → <strong>New Variable</strong> → добавь эти 3 переменные:</p>
+        <table class="env-table">
+          <tr><th>Переменная</th><th>Значение</th></tr>
+          <tr><td>TG_API_ID</td><td>твой api_id (числа)</td></tr>
+          <tr><td>TG_API_HASH</td><td>твой api_hash (буквы и цифры)</td></tr>
+          <tr><td>PORT</td><td>8000</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">9</div>
+      <div class="step-content">
+        <h4>Получи публичный URL</h4>
+        <p>В Railway: <strong>Settings</strong> → <strong>Networking</strong> → <strong>Generate Domain</strong></p>
+        <p>Получишь URL вида: <code>https://tg-crm-backend.up.railway.app</code></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">10</div>
+      <div class="step-content">
+        <h4>Добавь URL в CRM</h4>
+        <p>В файле <code>src/config.ts</code> замени:</p>
+        <pre>export const BACKEND_URL = <span class="string">"https://tg-crm-backend.up.railway.app"</span>;</pre>
+        <p>Или создай <code>.env</code> в корне проекта:</p>
+        <pre>VITE_BACKEND_URL=https://tg-crm-backend.up.railway.app</pre>
+      </div>
+    </div>
+
+    <hr>
+    <p class="section-title">Шаг 4 — Авторизуй Telegram аккаунт</p>
+
+    <div class="step">
+      <div class="step-num">11</div>
+      <div class="step-content">
+        <h4>Открой файл add_account.html</h4>
+        <p>Открой <code>backend/add_account.html</code> в браузере → в поле "URL бэкенда" введи свой Railway URL → добавь аккаунт</p>
+        <p><strong>Или</strong> через CRM: Настройки → Аккаунты → Подключить TG</p>
+      </div>
+    </div>
+
+    <div class="success">🎉 Готово! Теперь в чате CRM сообщения будут идти с твоего реального Telegram аккаунта</div>
+  </div>
+
+  <!-- ═══ RENDER ═══ -->
+  <div id="guide-render" class="guide">
+    <h2>🎨 Render.com — Пошаговая инструкция</h2>
+
+    <div class="warn">⚠️ На бесплатном тарифе сервис засыпает через 15 минут без запросов. При пробуждении сессии восстанавливаются автоматически (файлы .session сохраняются на диске).</div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Загрузи backend на GitHub</h4>
+        <p>Создай репозиторий <code>tg-crm-backend</code> на GitHub, загрузи файлы из папки <code>backend/</code></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Зарегистрируйся на Render</h4>
+        <p><a href="https://render.com" target="_blank">render.com</a> → Sign Up with GitHub</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Создай Web Service</h4>
+        <p>New → Web Service → Connect GitHub → выбери репозиторий</p>
+        <p>Настройки:</p>
+        <pre>Name: tg-crm-backend
+Environment: Python 3
+Build Command: pip install -r requirements.txt
+Start Command: python main.py
+Instance Type: Free</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Добавь переменные окружения</h4>
+        <p>Environment → Add Environment Variable:</p>
+        <table class="env-table">
+          <tr><th>Key</th><th>Value</th></tr>
+          <tr><td>TG_API_ID</td><td>твой api_id</td></tr>
+          <tr><td>TG_API_HASH</td><td>твой api_hash</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Добавь Disk для сохранения сессий</h4>
+        <p>⚠️ ВАЖНО: на бесплатном Render файлы НЕ сохраняются! Нужно добавить Disk:</p>
+        <p>Disks → Add Disk:</p>
+        <pre>Name: sessions
+Mount Path: /opt/render/project/src/sessions
+Size: 1 GB</pre>
+        <div class="warn">Disk стоит $0.25/GB/мес — это ~7₽ в месяц. Без него при перезапуске нужно будет заново авторизовывать аккаунты.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <h4>Деплой и настройка URL</h4>
+        <p>Нажми Create Web Service → дождись деплоя (3-5 минут)</p>
+        <p>Скопируй URL вида <code>https://tg-crm-backend.onrender.com</code></p>
+        <p>Вставь его в <code>src/config.ts</code> или <code>.env</code></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ORACLE ═══ -->
+  <div id="guide-oracle" class="guide">
+    <h2>☁️ Oracle Cloud — БЕСПЛАТНО НАВСЕГДА</h2>
+
+    <div class="success">✅ Это единственная платформа с реально бесплатным сервером НАВСЕГДА. 2 CPU, 1GB RAM, без ограничений по времени.</div>
+    <div class="warn">⚠️ Сложнее настроить. Нужна банковская карта для регистрации (деньги НЕ снимаются при выборе Free Tier).</div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Зарегистрируйся на Oracle Cloud</h4>
+        <p><a href="https://cloud.oracle.com/free" target="_blank">cloud.oracle.com/free</a> → Create Account</p>
+        <p>Выбери регион ближайший к тебе (Germany Frankfurt или Швейцария)</p>
+        <p>Введи карту (не снимут деньги при Always Free тарифе)</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Создай виртуальную машину</h4>
+        <p>Compute → Instances → Create Instance</p>
+        <pre>Name: tg-crm-server
+Image: Ubuntu 22.04 (Always Free eligible)
+Shape: VM.Standard.E2.1.Micro (Always Free)
+</pre>
+        <p>Создай или загрузи SSH ключ (сохрани файл .key на компьютере!)</p>
+        <p>Нажми Create</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Подключись к серверу</h4>
+        <p>Скопируй Public IP адрес из Oracle → подключись через терминал:</p>
+        <pre>ssh -i путь/к/твоему.key ubuntu@ТУТ_IP_АДРЕС</pre>
+        <p>На Windows скачай <a href="https://www.putty.org" target="_blank">PuTTY</a> или используй Windows Terminal</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Установи Python и зависимости</h4>
+        <pre>sudo apt update && sudo apt upgrade -y
+sudo apt install python3 python3-pip git -y
+mkdir tg-crm && cd tg-crm</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Загрузи бэкенд</h4>
+        <p>Способ A — через Git:</p>
+        <pre>git clone https://github.com/ТВОЙ_ЛОГИН/tg-crm-backend.git .
+pip3 install -r requirements.txt</pre>
+        <p>Способ B — скопируй файлы через SCP:</p>
+        <pre>scp -i твой.key backend/main.py ubuntu@IP:~/tg-crm/
+scp -i твой.key backend/requirements.txt ubuntu@IP:~/tg-crm/</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <h4>Создай .env файл</h4>
+        <pre>cat > .env << EOF
+TG_API_ID=ТУТ_ТВОЙ_API_ID
+TG_API_HASH=ТУТ_ТВОЙ_API_HASH
+PORT=8000
+EOF</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">7</div>
+      <div class="step-content">
+        <h4>Открой порт 8000 в Oracle и Ubuntu</h4>
+        <p>В Oracle Console: Virtual Cloud Networks → Security List → Add Ingress Rule:</p>
+        <pre>Source CIDR: 0.0.0.0/0
+IP Protocol: TCP
+Destination Port Range: 8000</pre>
+        <p>На сервере тоже открой порт:</p>
+        <pre>sudo iptables -A INPUT -p tcp --dport 8000 -j ACCEPT
+sudo netfilter-persistent save</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">8</div>
+      <div class="step-content">
+        <h4>Запусти как сервис (работает после перезагрузки)</h4>
+        <pre>sudo nano /etc/systemd/system/tg-crm.service</pre>
+        <p>Вставь:</p>
+        <pre>[Unit]
+Description=TG Card CRM Backend
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/tg-crm
+ExecStart=/usr/bin/python3 main.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target</pre>
+        <pre>sudo systemctl daemon-reload
+sudo systemctl enable tg-crm
+sudo systemctl start tg-crm</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">9</div>
+      <div class="step-content">
+        <h4>Используй IP в CRM</h4>
+        <p>Твой бэкенд доступен по адресу: <code>http://ТУТ_IP:8000</code></p>
+        <p>Вставь в <code>src/config.ts</code>:</p>
+        <pre>export const BACKEND_URL = <span class="string">"http://123.456.789.0:8000"</span>;</pre>
+      </div>
+    </div>
+
+    <div class="success">🎉 Сервер работает 24/7 бесплатно навсегда!</div>
+  </div>
+
+  <!-- ═══ FLY.IO ═══ -->
+  <div id="guide-flyio" class="guide">
+    <h2>🪁 Fly.io — Пошаговая инструкция</h2>
+
+    <div class="info">ℹ️ 3 бесплатных VM, WebSocket работает отлично. Нужна карта для верификации.</div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Установи flyctl</h4>
+        <p>Windows (PowerShell):</p>
+        <pre>iwr https://fly.io/install.ps1 -useb | iex</pre>
+        <p>Mac/Linux:</p>
+        <pre>curl -L https://fly.io/install.sh | sh</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Зарегистрируйся и войди</h4>
+        <pre>fly auth signup
+<span class="comment"># или если уже есть аккаунт:</span>
+fly auth login</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Создай Dockerfile в папке backend</h4>
+        <p>Создай файл <code>backend/Dockerfile</code>:</p>
+        <pre>FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+RUN mkdir -p sessions
+CMD ["python", "main.py"]</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Задеплой</h4>
+        <pre>cd backend
+fly launch --name tg-crm-backend --region ams
+fly secrets set TG_API_ID=ТУТ_ТВОЙ_ID TG_API_HASH=ТУТ_ТВОЙ_HASH
+fly volumes create sessions --size 1
+fly deploy</pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Получи URL</h4>
+        <pre>fly status
+<span class="comment"># URL будет вида: https://tg-crm-backend.fly.dev</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ LOCAL ═══ -->
+  <div id="guide-local" class="guide">
+    <h2>🏠 Локальный запуск + туннель в интернет</h2>
+
+    <div class="info">ℹ️ Запускаешь бэкенд на своём компьютере, а через туннель он доступен из интернета (для деплоя CRM на Vercel). Компьютер должен быть включён.</div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Установи Python</h4>
+        <p>Скачай с <a href="https://python.org/downloads" target="_blank">python.org/downloads</a> → установи (галочка "Add to PATH"!)</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Создай .env файл</h4>
+        <p>В папке <code>backend/</code> скопируй <code>.env.example</code> в <code>.env</code> и заполни:</p>
+        <pre>TG_API_ID=12345678
+TG_API_HASH=abcdef1234567890abcdef</pre>
+        <p>Ключи: <a href="https://my.telegram.org/apps" target="_blank">my.telegram.org/apps</a></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Запусти бэкенд</h4>
+        <p>В папке backend запусти <code>start.bat</code> (двойной клик) ИЛИ в cmd:</p>
+        <pre>cd backend
+pip install -r requirements.txt
+python main.py</pre>
+        <p>Бэкенд запустится на <code>http://localhost:8000</code></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Вариант A: ngrok (самый простой туннель)</h4>
+        <p>Скачай с <a href="https://ngrok.com" target="_blank">ngrok.com</a> → зарегистрируйся → скачай exe</p>
+        <pre>ngrok http 8000</pre>
+        <p>Получишь URL вида: <code>https://abc123.ngrok-free.app</code></p>
+        <p>Вставь его в <code>src/config.ts</code></p>
+        <div class="warn">⚠️ URL меняется при каждом перезапуске ngrok. Платный план ($8/мес) даёт постоянный URL.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Вариант B: localtunnel (полностью бесплатно)</h4>
+        <pre>npm install -g localtunnel
+lt --port 8000 --subdomain tg-crm-backend</pre>
+        <p>URL: <code>https://tg-crm-backend.loca.lt</code></p>
+        <div class="info">ℹ️ При первом открытии нужно нажать кнопку подтверждения на странице localtunnel</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <h4>CRM работает локально</h4>
+        <p>Если CRM тоже на localhost, то просто:</p>
+        <pre>export const BACKEND_URL = <span class="string">"http://localhost:8000"</span>;</pre>
+        <p>И открывай CRM через <code>npm run dev</code> → <code>http://localhost:5173</code></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Общие шаги после деплоя -->
+  <div style="background:#1e293b;border:1.5px solid #334155;border-radius:16px;padding:32px;margin-top:16px">
+    <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:20px;color:#f1f5f9">✅ После деплоя — добавь Telegram аккаунт</h2>
+    
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Открой файл add_account.html в браузере</h4>
+        <p>Файл находится в папке <code>backend/add_account.html</code> — просто двойной клик для открытия</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Введи URL бэкенда и номер телефона</h4>
+        <p>Введи свой номер в формате <code>+79001234567</code> → нажми "Отправить код"</p>
+        <p>Придёт код в Telegram → введи его</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Аккаунт авторизован!</h4>
+        <p>Теперь в CRM (раздел Чат) сообщения будут отправляться с твоего реального аккаунта Telegram</p>
+        <p>Сессия сохраняется — повторная авторизация не нужна</p>
+      </div>
+    </div>
+
+    <div class="success">
+      🎉 Всё готово! Открывай CRM → Войди как admin/admin123 → Раздел Чат → выбери лида → пиши сообщения!
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showGuide(id) {
+  document.querySelectorAll('.guide').forEach(g => g.classList.remove('active'));
+  document.querySelectorAll('.platform-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('guide-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+</body>
+</html>
