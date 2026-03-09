@@ -297,16 +297,26 @@ function LeadFormModal({ open, onClose, lead, accounts, offers, cabinets, onSave
 // CHAT PAGE
 // ═══════════════════════════════════════════
 export function ChatPage({
-  leads, setLeads, accounts, messages, setMessages, quickReplies, dark, initialLeadId, onSendMessage,
+  leads,
+  setLeads,
+  accounts,
+  messages,
+  setMessages,
+  quickReplies,
+  dark,
+  initialLeadId,
+  onSendMessage,
 }: {
-  leads: Lead[]; setLeads: (l: Lead[]) => void;
+  leads: Lead[];
+  setLeads: (l: Lead[]) => void;
   accounts: TgAccount[];
-  messages: ChatMessage[]; setMessages: (m: ChatMessage[]) => void;
-  quickReplies: QuickReply[]; dark: boolean;
+  messages: ChatMessage[];
+  setMessages: (m: ChatMessage[]) => void;
+  quickReplies: QuickReply[];
+  dark: boolean;
   initialLeadId?: number | null;
   onSendMessage?: (text: string, contact: string) => void;
-  })
-  {
+}) {
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(initialLeadId || null);
   const [chatSearch, setChatSearch] = useState("");
   const [chatFilterStatus, setChatFilterStatus] = useState("");
@@ -319,43 +329,60 @@ export function ChatPage({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (initialLeadId) { setSelectedLeadId(initialLeadId); setMobileShowChat(true); }
+    if (initialLeadId) {
+      setSelectedLeadId(initialLeadId);
+      setMobileShowChat(true);
+    }
   }, [initialLeadId]);
 
   useEffect(() => {
     msgEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [selectedLeadId, messages]);
 
-  const filteredLeads = leads.filter(l => {
+  const filteredLeads = leads.filter((l) => {
     const q = chatSearch.toLowerCase();
-    const match = !q || l.full_name.toLowerCase().includes(q) || l.tg_username.toLowerCase().includes(q);
+    const match =
+      !q ||
+      l.full_name.toLowerCase().includes(q) ||
+      l.tg_username.toLowerCase().includes(q);
     const statusMatch = !chatFilterStatus || l.status === chatFilterStatus;
     const accMatch = !chatFilterAccount || l.tg_account_id === Number(chatFilterAccount);
     return match && statusMatch && accMatch;
   });
 
-  const selectedLead = leads.find(l => l.id === selectedLeadId) || null;
-  const leadMessages = messages.filter(m => m.lead_id === selectedLeadId).sort((a, b) => a.sent_at.localeCompare(b.sent_at));
+  const selectedLead = leads.find((l) => l.id === selectedLeadId) || null;
+  const leadMessages = messages
+    .filter((m) => m.lead_id === selectedLeadId)
+    .sort((a, b) => a.sent_at.localeCompare(b.sent_at));
 
   const getLastMessage = (leadId: number) => {
-    const msgs = messages.filter(m => m.lead_id === leadId);
+    const msgs = messages.filter((m) => m.lead_id === leadId);
     return msgs.length > 0 ? msgs[msgs.length - 1] : null;
   };
 
-   const sendMessage = () => {
+  const sendMessage = () => {
     if (!msgText.trim() || !selectedLead) return;
 
-    // 👇 НОВАЯ ЛОГИКА ОТПРАВКИ 👇
+    // 1. Отправка на backend, если передан onSendMessage
     if (onSendMessage) {
-       const contact = selectedLead.tg_username 
-          ? selectedLead.tg_username.replace('@', '') 
-          : selectedLead.phone;
-          
-       onSendMessage(msgText.trim(), contact);
-       setMsgText("");
-       setShowQuickReplies(false);
-       return;
+      const contact = selectedLead.tg_username || selectedLead.phone;
+      onSendMessage(msgText.trim(), contact);
     }
+
+    // 2. Локально добавляем сообщение, чтобы оно сразу появилось в чате
+    const newMsg: ChatMessage = {
+      id: Math.max(0, ...messages.map((m) => m.id)) + 1,
+      lead_id: selectedLead.id,
+      tg_account_id: selectedLead.tg_account_id,
+      direction: "outgoing",
+      text: msgText.trim(),
+      sent_at: new Date().toISOString(),
+    };
+    setMessages([...messages, newMsg]);
+
+    setMsgText("");
+    setShowQuickReplies(false);
+  };
 
   const handleInputChange = (val: string) => {
     setMsgText(val);
@@ -385,41 +412,80 @@ export function ChatPage({
   };
 
   const updateLeadStatus = (id: number, status: LeadStatus) => {
-    setLeads(leads.map(l => l.id === id ? { ...l, status, updated_at: new Date().toISOString() } : l));
+    setLeads(
+      leads.map((l) =>
+        l.id === id
+          ? { ...l, status, updated_at: new Date().toISOString() }
+          : l
+      )
+    );
   };
 
-  const filteredQR = quickReplies.filter(qr => qr.is_active && (!qrFilter || qr.shortcut.includes(qrFilter) || qr.text.toLowerCase().includes(qrFilter.toLowerCase())));
+  const filteredQR = quickReplies.filter(
+    (qr) =>
+      qr.is_active &&
+      (!qrFilter ||
+        qr.shortcut.includes(qrFilter) ||
+        qr.text.toLowerCase().includes(qrFilter.toLowerCase()))
+  );
 
-  // Mobile layout
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
   return (
-    <div className="flex h-[calc(100vh-72px)] md:h-[calc(100vh-32px)] animate-fadeIn" style={{ borderRadius: 16, overflow: "hidden" }}>
+    <div
+      className="flex h-[calc(100vh-72px)] md:h-[calc(100vh-32px)] animate-fadeIn"
+      style={{ borderRadius: 16, overflow: "hidden" }}
+    >
       {/* Left panel - contacts list */}
       <div
-        className={`${isMobile && mobileShowChat ? "hidden" : "flex"} flex-col w-full md:w-80 md:flex`}
+        className={`${
+          isMobile && mobileShowChat ? "hidden" : "flex"
+        } flex-col w-full md:w-80 md:flex`}
         style={{ borderRight: "1.5px solid var(--border)", background: "var(--bg-card)" }}
       >
-        <div className="p-3 space-y-2" style={{ borderBottom: "1px solid var(--border)" }}>
-          <Input placeholder="🔍 Поиск..." value={chatSearch} onChange={e => setChatSearch(e.target.value)} />
+        <div
+          className="p-3 space-y-2"
+          style={{ borderBottom: "1px solid var(--border)" }}
+        >
+          <Input
+            placeholder="🔍 Поиск..."
+            value={chatSearch}
+            onChange={(e) => setChatSearch(e.target.value)}
+          />
           <div className="flex gap-2">
             <select
               className="flex-1 px-2 py-1 rounded-lg text-xs"
-              style={{ background: "var(--bg-main)", color: "var(--text-sub)", border: "1px solid var(--border)" }}
+              style={{
+                background: "var(--bg-main)",
+                color: "var(--text-sub)",
+                border: "1px solid var(--border)",
+              }}
               value={chatFilterStatus}
-              onChange={e => setChatFilterStatus(e.target.value)}
+              onChange={(e) => setChatFilterStatus(e.target.value)}
             >
               <option value="">Все статусы</option>
-              {ALL_STATUSES.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
+              {ALL_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {STATUS_CONFIG[s].label}
+                </option>
+              ))}
             </select>
             <select
               className="flex-1 px-2 py-1 rounded-lg text-xs"
-              style={{ background: "var(--bg-main)", color: "var(--text-sub)", border: "1px solid var(--border)" }}
+              style={{
+                background: "var(--bg-main)",
+                color: "var(--text-sub)",
+                border: "1px solid var(--border)",
+              }}
               value={chatFilterAccount}
-              onChange={e => setChatFilterAccount(e.target.value)}
+              onChange={(e) => setChatFilterAccount(e.target.value)}
             >
               <option value="">Все акки</option>
-              {accounts.map(a => <option key={a.id} value={a.id}>{a.label}</option>)}
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -428,36 +494,62 @@ export function ChatPage({
           {filteredLeads.length === 0 ? (
             <Empty icon="🔍" text="Нет контактов" />
           ) : (
-            filteredLeads.map(l => {
+            filteredLeads.map((l) => {
               const lastMsg = getLastMessage(l.id);
-              const acc = accounts.find(a => a.id === l.tg_account_id);
+              const acc = accounts.find((a) => a.id === l.tg_account_id);
               return (
                 <div
                   key={l.id}
-                  onClick={() => { setSelectedLeadId(l.id); setMobileShowChat(true); }}
+                  onClick={() => {
+                    setSelectedLeadId(l.id);
+                    setMobileShowChat(true);
+                  }}
                   className="flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all"
                   style={{
-                    background: selectedLeadId === l.id ? "var(--bg-main)" : "transparent",
+                    background:
+                      selectedLeadId === l.id ? "var(--bg-main)" : "transparent",
                     borderBottom: "1px solid var(--border)",
                   }}
                 >
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ background: "#4f46e5" }}>
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0"
+                    style={{ background: "#4f46e5" }}
+                  >
                     {l.full_name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-sm truncate" style={{ color: "var(--text-main)" }}>{l.full_name}</span>
-                      <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                        {lastMsg ? new Date(lastMsg.sent_at).toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" }) : ""}
+                      <span
+                        className="font-medium text-sm truncate"
+                        style={{ color: "var(--text-main)" }}
+                      >
+                        {l.full_name}
+                      </span>
+                      <span
+                        className="text-[10px]"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        {lastMsg
+                          ? new Date(lastMsg.sent_at).toLocaleTimeString("ru", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : ""}
                       </span>
                     </div>
                     <div className="flex items-center gap-1 mt-0.5">
                       <StatusBadge status={l.status} dark={dark} />
                     </div>
-                    <div className="text-xs truncate mt-0.5" style={{ color: "var(--text-muted)" }}>
+                    <div
+                      className="text-xs truncate mt-0.5"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       {lastMsg ? lastMsg.text : "Нет сообщений"}
                     </div>
-                    <div className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                    <div
+                      className="text-[10px] mt-0.5"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       📱 {acc?.label || "—"}
                     </div>
                   </div>
@@ -470,7 +562,9 @@ export function ChatPage({
 
       {/* Right panel - chat */}
       <div
-        className={`${isMobile && !mobileShowChat ? "hidden" : "flex"} flex-col flex-1 md:flex`}
+        className={`${
+          isMobile && !mobileShowChat ? "hidden" : "flex"
+        } flex-col flex-1 md:flex`}
         style={{ background: "var(--bg-main)" }}
       >
         {!selectedLead ? (
@@ -480,26 +574,60 @@ export function ChatPage({
         ) : (
           <>
             {/* Chat header */}
-            <div className="flex items-center gap-3 px-4 py-3" style={{ background: "var(--bg-card)", borderBottom: "1.5px solid var(--border)" }}>
+            <div
+              className="flex items-center gap-3 px-4 py-3"
+              style={{
+                background: "var(--bg-card)",
+                borderBottom: "1.5px solid var(--border)",
+              }}
+            >
               {isMobile && (
-                <button onClick={() => setMobileShowChat(false)} className="text-lg cursor-pointer" style={{ color: "var(--text-sub)" }}>←</button>
+                <button
+                  onClick={() => setMobileShowChat(false)}
+                  className="text-lg cursor-pointer"
+                  style={{ color: "var(--text-sub)" }}
+                >
+                  ←
+                </button>
               )}
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ background: "#4f46e5" }}>
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                style={{ background: "#4f46e5" }}
+              >
                 {selectedLead.full_name.charAt(0)}
               </div>
               <div className="flex-1">
-                <a href={`https://t.me/${selectedLead.tg_username}`} target="_blank" rel="noopener noreferrer" className="font-medium text-sm hover:underline" style={{ color: "var(--text-main)" }}>
+                <a
+                  href={`https://t.me/${selectedLead.tg_username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-sm hover:underline"
+                  style={{ color: "var(--text-main)" }}
+                >
                   {selectedLead.full_name}
                 </a>
-                <div className="text-xs" style={{ color: "var(--text-muted)" }}>@{selectedLead.tg_username}</div>
+                <div
+                  className="text-xs"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  @{selectedLead.tg_username}
+                </div>
               </div>
-              <StatusDropdown status={selectedLead.status} onChange={s => updateLeadStatus(selectedLead.id, s)} dark={dark} />
+              <StatusDropdown
+                status={selectedLead.status}
+                onChange={(s) => updateLeadStatus(selectedLead.id, s)}
+                dark={dark}
+              />
               <a
                 href={`https://t.me/${selectedLead.tg_username}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-2 py-1 rounded-lg text-xs cursor-pointer"
-                style={{ background: "var(--bg-main)", color: "var(--text-sub)", textDecoration: "none" }}
+                style={{
+                  background: "var(--bg-main)",
+                  color: "var(--text-sub)",
+                  textDecoration: "none",
+                }}
               >
                 TG ↗
               </a>
@@ -507,17 +635,44 @@ export function ChatPage({
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-              {leadMessages.map(m => {
-                const acc = accounts.find(a => a.id === m.tg_account_id);
+              {leadMessages.map((m) => {
+                const acc = accounts.find((a) => a.id === m.tg_account_id);
                 return (
-                  <div key={m.id} className={`flex ${m.direction === "outgoing" ? "justify-end" : "justify-start"}`}>
+                  <div
+                    key={m.id}
+                    className={`flex ${
+                      m.direction === "outgoing"
+                        ? "justify-end"
+                        : "justify-start"
+                    }`}
+                  >
                     <div
-                      className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm ${m.direction === "incoming" ? "chat-bubble-in" : "chat-bubble-out"}`}
+                      className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm ${
+                        m.direction === "incoming"
+                          ? "chat-bubble-in"
+                          : "chat-bubble-out"
+                      }`}
                     >
                       <div>{m.text}</div>
-                      <div className={`text-[10px] mt-1 ${m.direction === "outgoing" ? "text-indigo-200" : ""}`} style={m.direction === "incoming" ? { color: "var(--text-muted)" } : {}}>
-                        {new Date(m.sent_at).toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" })}
-                        {m.direction === "outgoing" && acc && <span className="ml-1">📱 {acc.label}</span>}
+                      <div
+                        className={`text-[10px] mt-1 ${
+                          m.direction === "outgoing"
+                            ? "text-indigo-200"
+                            : ""
+                        }`}
+                        style={
+                          m.direction === "incoming"
+                            ? { color: "var(--text-muted)" }
+                            : {}
+                        }
+                      >
+                        {new Date(m.sent_at).toLocaleTimeString("ru", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                        {m.direction === "outgoing" && acc && (
+                          <span className="ml-1">📱 {acc.label}</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -527,21 +682,37 @@ export function ChatPage({
             </div>
 
             {/* Input */}
-            <div className="relative px-4 py-3" style={{ background: "var(--bg-card)", borderTop: "1.5px solid var(--border)" }}>
+            <div
+              className="relative px-4 py-3"
+              style={{
+                background: "var(--bg-card)",
+                borderTop: "1.5px solid var(--border)",
+              }}
+            >
               {showQuickReplies && filteredQR.length > 0 && (
                 <div
                   className="absolute bottom-full left-4 right-4 crm-card p-2 mb-2 max-h-48 overflow-y-auto animate-scaleIn"
                   style={{ borderRadius: 12 }}
                 >
-                  {filteredQR.map(qr => (
+                  {filteredQR.map((qr) => (
                     <button
                       key={qr.id}
-                      onMouseDown={(e) => { e.preventDefault(); selectQuickReply(qr.text); }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        selectQuickReply(qr.text);
+                      }}
                       className="w-full text-left px-3 py-2 rounded-lg text-sm cursor-pointer transition-all hover:opacity-80"
                       style={{ color: "var(--text-main)" }}
                     >
-                      <span className="font-semibold text-indigo-500">/{qr.shortcut}</span>
-                      <span className="ml-2" style={{ color: "var(--text-sub)" }}>{qr.text.slice(0, 60)}...</span>
+                      <span className="font-semibold text-indigo-500">
+                        /{qr.shortcut}
+                      </span>
+                      <span
+                        className="ml-2"
+                        style={{ color: "var(--text-sub)" }}
+                      >
+                        {qr.text.slice(0, 60)}...
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -551,13 +722,19 @@ export function ChatPage({
                   ref={inputRef}
                   type="text"
                   value={msgText}
-                  onChange={e => handleInputChange(e.target.value)}
+                  onChange={(e) => handleInputChange(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Сообщение... (/ для быстрых ответов)"
                   className="flex-1 px-4 py-2.5 rounded-xl text-sm outline-none"
-                  style={{ background: "var(--bg-main)", color: "var(--text-main)", border: "1.5px solid var(--border)" }}
+                  style={{
+                    background: "var(--bg-main)",
+                    color: "var(--text-main)",
+                    border: "1.5px solid var(--border)",
+                  }}
                 />
-                <Btn onClick={sendMessage} disabled={!msgText.trim()}>↑</Btn>
+                <Btn onClick={sendMessage} disabled={!msgText.trim()}>
+                  ↑
+                </Btn>
               </div>
             </div>
           </>
@@ -566,7 +743,6 @@ export function ChatPage({
     </div>
   );
 }
-  }
 
 
 // ═══════════════════════════════════════════
